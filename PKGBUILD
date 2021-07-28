@@ -229,6 +229,7 @@ _package-headers() {
 
 }
 
+: '
 _package-docs() {
   pkgdesc="Kernel hackers manual - HTML documentation that comes with the Linux kernel"
 
@@ -243,8 +244,10 @@ _package-docs() {
   rm -f "${pkgdir}/usr/lib/modules/${_kernver}/build/Documentation/DocBook/Makefile"
 
 }
+'
 
-pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-docs")
+# pkgname=("${pkgbase}" "${pkgbase}-headers" "${pkgbase}-docs")
+pkgname=("${pkgbase}" "${pkgbase}-headers")
 for _p in ${pkgname[@]}; do
   eval "package_${_p}() {
     $(declare -f "_package${_p#${pkgbase}}")
