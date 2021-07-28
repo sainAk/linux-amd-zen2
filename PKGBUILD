@@ -1,6 +1,4 @@
-# Maintainer: Steven De Bondt <egnappah at gmail dot com>
-
-pkgbase=linux-amd-znver2
+pkgbase=linux-amd-zen2
 _srcname=linux
 gitver=v5.13.6
 patchver=20210616
@@ -19,8 +17,8 @@ source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git#ta
         "${pkgbase}.preset"
         # linux package install directives for pacman
         'linux.install'
-	# patch from our graysky archlinux colleague
-	"https://raw.githubusercontent.com/graysky2/kernel_compiler_patch/$patchver/more-uarches-for-kernel-5.8+.patch"
+        # patch from our graysky archlinux colleague
+        "https://raw.githubusercontent.com/graysky2/kernel_compiler_patch/$patchver/more-uarches-for-kernel-5.8+.patch"
 )
 sha256sums=('SKIP'
             #config.x86_64
@@ -45,7 +43,7 @@ prepare() {
     cat "${srcdir}/config.x86_64" > ./.config
   else
     echo "Sorry, non x86_64 arch not supported."
-      exit 2
+    exit 2
   fi
 
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
@@ -76,14 +74,14 @@ prepare() {
 build() {
   cd "${_srcname}"
 
-  #Force zenv2 architecture optimisation.
+  #Force znver2 architecture optimisation.
   export CFLAGS="-march=znver2 -mtune=znver2 -O2 -pipe -fstack-protector-strong"
   export CXXFLAGS="${CFLAGS}"
   make ${MAKEFLAGS} LOCALVERSION= bzImage modules
 }
 
 _package() {
-  pkgdesc="Linux kernel aimed at the znver2 AMD Ryzen CPU based hardware"
+  pkgdesc="Linux kernel aimed at the zen2 AMD Ryzen CPU based hardware"
   depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7' 'lzop')
   optdepends=('crda: to set the correct wireless channels of your country')
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
@@ -148,7 +146,7 @@ _package() {
 }
 
 _package-headers() {
-  pkgdesc="Header files and scripts for building modules for the linux-amd-znver2 kernel"
+  pkgdesc="Header files and scripts for building modules for the linux-amd-zen2 kernel"
 
   install -dm755 "${pkgdir}/usr/lib/modules/${_kernver}"
 

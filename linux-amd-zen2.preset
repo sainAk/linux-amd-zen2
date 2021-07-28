@@ -1,4 +1,4 @@
-# mkinitcpio preset file for the 'linux-amd' package
+# mkinitcpio preset file for the 'linux-amd-zen2' package
 
 ALL_config="/etc/mkinitcpio.conf"
 ALL_kver="/boot/vmlinuz-linux-amd"
