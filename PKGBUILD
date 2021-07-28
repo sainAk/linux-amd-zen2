@@ -1,34 +1,38 @@
 pkgbase=linux-amd-zen2
-_srcname=linux
-gitver=v5.13.6
 patchver=20210616
-pkgver=5.13.v.6
+pkgver=5.13.6
 pkgrel=1
+_srcname=linux
 arch=('x86_64')
 url="https://www.kernel.org/"
 license=('GPL2')
-makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'libelf' 'lzop' 'gcc>=9.1')
+makedepends=('xmlto' 'docbook-xsl' 'kmod' 'inetutils' 'bc' 'git' 'libelf' 'gcc>=9.1')
 options=('!strip')
 
-source=("git+https://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git#tag=$gitver"
-        # the main kernel config files
-        'config.x86_64'
-        # standard config files for mkinitcpio ramdisk
-        "${pkgbase}.preset"
-        # linux package install directives for pacman
-        'linux.install'
-        # patch from our graysky archlinux colleague
-        "https://raw.githubusercontent.com/graysky2/kernel_compiler_patch/$patchver/more-uarches-for-kernel-5.8+.patch"
+
+_gitremote='https://github.com/amazonlinux/linux.git'
+#_gitremote='https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux'
+#_gitremote='git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git'
+
+source=(
+  # the main kernel config files
+  'config.x86_64'
+  # standard config files for mkinitcpio ramdisk
+  "${pkgbase}.preset"
+  # linux package install directives for pacman
+  'linux.install'
+  # patch from our graysky archlinux colleague
+  "https://raw.githubusercontent.com/graysky2/kernel_compiler_patch/${patchver}/more-uarches-for-kernel-5.8+.patch"
 )
-sha256sums=('SKIP'
-            #config.x86_64
-            'bb0e06e3a3c50868bf53f845e7cb2ccf69124a7edf5bff5ab9be08ea6b9d0b09'
-            #.preset file
-            '60c6ba602443e94a9eba3aeee9d194027d69bffaa428c6d055348ebf03681b5c'
-            #linux install file
-            'd590e751ab4cf424b78fd0d57e53d187f07401a68c8b468d17a5f39a337dacf0'
-            #grayskypatch
-            'fa6cee9527d8e963d3398085d1862edc509a52e4540baec463edb8a9dd95bee0'
+sha256sums=(
+  #config.x86_64
+  'e80c7db703a6239d181486aea99001d49b63a902d94a5d8c00fcdc8c76c05cfe'
+  #linux-amd-zen2.preset
+  'da6f7c48a514f8ec549bae7b57befa5f4e4cc9524549b925ca0528d17efd55ad'
+  #linux install file
+  'd590e751ab4cf424b78fd0d57e53d187f07401a68c8b468d17a5f39a337dacf0'
+  #grayskypatch
+  'fa6cee9527d8e963d3398085d1862edc509a52e4540baec463edb8a9dd95bee0'
 )
 
 _kernelname=${pkgbase#linux}
@@ -38,6 +42,18 @@ pkgver() {
 }
 
 prepare() {
+  cd "${_srcname}"
+
+  if  [ -d "${srcdir}/${_srcname}" ] ; then
+    git -C reset --hard HEAD
+    git -C remote set-url origin ${_gitremote}
+    git -C fetch --depth 1 -n origin +refs/tags/${pkgver}:refs/tags/${pkgver}
+    git -C checkout tags/${pkgver}
+    echo "The local files are updated."
+  else
+    git clone -b "${pkgver}" --single-branch --depth 1 "${_gitremote}" "${srcdir}/${_srcname}"
+  fi
+
   cd "${_srcname}"
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
@@ -82,8 +98,11 @@ build() {
 
 _package() {
   pkgdesc="Linux kernel aimed at the zen2 AMD Ryzen CPU based hardware"
-  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7' 'lzop')
-  optdepends=('crda: to set the correct wireless channels of your country')
+  depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
+  optdepends=(
+    'lzop': 'lzop compression support'
+    'crda: to set the correct wireless channels of your country'
+  )
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
   install=linux.install
 
