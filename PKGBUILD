@@ -11,7 +11,7 @@ options=('!strip')
 
 
 _gitremote='https://github.com/amazonlinux/linux.git'
-#_gitremote='https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux'
+# _gitremote='https://kernel.googlesource.com/pub/scm/linux/kernel/git/stable/linux'
 #_gitremote='git://git.kernel.org/pub/scm/linux/kernel/git/stable/linux.git'
 
 source=(
@@ -26,7 +26,7 @@ source=(
 )
 sha256sums=(
   #config.x86_64
-  'e80c7db703a6239d181486aea99001d49b63a902d94a5d8c00fcdc8c76c05cfe'
+  'SKIP'
   #linux-amd-zen2.preset
   'da6f7c48a514f8ec549bae7b57befa5f4e4cc9524549b925ca0528d17efd55ad'
   #linux install file
@@ -42,19 +42,19 @@ pkgver() {
 }
 
 prepare() {
-  cd "${_srcname}"
 
   if  [ -d "${srcdir}/${_srcname}" ] ; then
-    git -C reset --hard HEAD
-    git -C remote set-url origin ${_gitremote}
-    git -C fetch --depth 1 -n origin +refs/tags/${pkgver}:refs/tags/${pkgver}
-    git -C checkout tags/${pkgver}
+    cd "${srcdir}/${_srcname}"
+    git reset --hard HEAD
+    git remote set-url origin ${_gitremote}
+    git fetch --depth 1 -n origin +refs/tags/v${pkgver}:refs/tags/v${pkgver}
+    git checkout tags/v${pkgver}
     echo "The local files are updated."
   else
-    git clone -b "${pkgver}" --single-branch --depth 1 "${_gitremote}" "${srcdir}/${_srcname}"
+    git clone -b "v${pkgver}" --single-branch --depth 1 "${_gitremote}" "${srcdir}/${_srcname}"
+    cd "${srcdir}/${_srcname}"
   fi
 
-  cd "${_srcname}"
   if [ "${CARCH}" = "x86_64" ]; then
     cat "${srcdir}/config.x86_64" > ./.config
   else
@@ -65,6 +65,8 @@ prepare() {
   # don't run depmod on 'make install'. We'll do this ourselves in packaging
   sed -i '2iexit 0' scripts/depmod.sh
 
+  # apply the suspend patch if yoy have unsorted c-state latency
+  # cat /sys/devices/system/cpu/cpu0/cpuidle/state{1,2,3}/{name, latency}
   # Implement all packaged patches.
   msg2 "Implementing custom kernel patches"
   while read patch; do
@@ -100,7 +102,7 @@ _package() {
   pkgdesc="Linux kernel aimed at the zen2 AMD Ryzen CPU based hardware"
   depends=('coreutils' 'linux-firmware' 'kmod' 'mkinitcpio>=0.7')
   optdepends=(
-    'lzop': 'lzop compression support'
+    'lzop: lzop compression support'
     'crda: to set the correct wireless channels of your country'
   )
   backup=("etc/mkinitcpio.d/${pkgbase}.preset")
