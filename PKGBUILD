@@ -1,5 +1,5 @@
 pkgbase=linux-zen2
-pkgver=5.13.7.arch1
+pkgver=5.13.9.arch1
 pkgrel=1
 pkgdesc='Linux'
 _srctag=v${pkgver%.*}-${pkgver##*.}
